@@ -1,7 +1,8 @@
 from rest_framework import viewsets, exceptions
-from posts.models import Post, Group, Comment
+from posts.models import Post, Group
 from .serializers import PostSerializer, GroupSerializer, CommentSerializer
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 
 User = get_user_model()
@@ -37,13 +38,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        # Получаем id котика из эндпоинта
-        post_id = self.kwargs.get("post_id")
+        post_id = get_object_or_404(Post, pk=self.kwargs.get("post_id"))
         # И отбираем только нужные комментарии
-        new_queryset = Comment.objects.filter(post=post_id)
+        # new_queryset = Comment.objects.filter(post=post_id)
+        new_queryset = post_id.comments.all()
         return new_queryset
 
     def perform_create(self, serializer):
+        get_object_or_404(Post, pk=self.kwargs.get("post_id"))
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
